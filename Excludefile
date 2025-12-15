@@ -1,0 +1,4 @@
+is_excluded() {
+  local path="$1"
+  grep -Eq ".*\/\.Trash\/?.*" <<< "$path"
+}
