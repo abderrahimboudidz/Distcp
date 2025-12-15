@@ -2,3 +2,9 @@ is_excluded() {
   local path="$1"
   grep -Eq ".*\/\.Trash\/?.*" <<< "$path"
 }
+
+  # Ignorer .Trash
+  if is_excluded "$FILE"; then
+    log "Ignoré (Trash) : $FILE"
+    continue
+  fi
