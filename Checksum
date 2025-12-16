@@ -1,0 +1,40 @@
+############################
+# VERIFICATION INTEGRITE
+############################
+
+log "Début de la vérification d'intégrité (checksum global)"
+
+while read -r FILE; do
+
+  # Exclusion .Trash
+  if is_excluded "$FILE"; then
+    log "Checksum ignoré (Trash) : $FILE"
+    continue
+  fi
+
+  SRC_PATH="${HDP_NAMENODE}${FILE}"
+  DST_PATH="${CDP_NAMENODE}${FILE}"
+
+  # Détection type
+  if is_directory "$SRC_PATH"; then
+    log "Calcul checksum répertoire : $FILE"
+
+    SRC_SUM=$(dir_checksum "$SRC_PATH")
+    DST_SUM=$(dir_checksum "$DST_PATH")
+
+  else
+    log "Calcul checksum fichier : $FILE"
+
+    SRC_SUM=$(hdfs dfs -checksum "$SRC_PATH" | awk '{print $NF}')
+    DST_SUM=$(hdfs dfs -checksum "$DST_PATH" | awk '{print $NF}')
+  fi
+
+  if [ "$SRC_SUM" != "$DST_SUM" ]; then
+    fatal "Checksum différent pour $FILE"
+  fi
+
+  log "Checksum OK : $FILE (hash=$SRC_SUM)"
+
+done < "$FILES_LIST"
+
+log "Vérification d'intégrité terminée avec succès"
