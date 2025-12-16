@@ -1,0 +1,17 @@
+dir_checksum() {
+  local dir="$1"
+
+  hdfs dfs -ls -R "$dir" 2>/dev/null \
+  | grep '^-' \
+  | awk '{print $5, $8}' \
+  | sort \
+  | while read -r size file; do
+      hdfs dfs -checksum "$file" 2>/dev/null \
+      | awk -v s="$size" -v f="$file" '{print s, f, $NF}'
+    done \
+  | sha256sum \
+  | awk '{print $1}'
+}
+is_directory() {
+  hdfs dfs -test -d "$1"
+}
